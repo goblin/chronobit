@@ -1,0 +1,5 @@
+port: 8080
+chainid: 2
+log_conf: log.conf
+p2pool: http://127.0.0.1:9332
+proofs: proofs

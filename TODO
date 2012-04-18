@@ -1,0 +1,21 @@
+Plans for future:
+
+- shorten Proof::new_from_share
+- get rid of blessing hacks for new_from_binary, perhaps by making the classes
+  inherit Data::ParseBinary::Struct and/or adding more adapters
+- create a nicer framework for commandline tools
+- make commandline tools get actual commandline arguments
+- make the config file location more configurable
+- add a proof splitter (to split a long proof into shorter ones)
+- add a proof manager (that'll automatically find shares etc)
+- add a proper proof creator
+
+Later future:
+- group up shares into merkle trees to reduce size of proofs
+- create "authorities" that'll sign merkle roots of such trees to prove
+  that shares actually existed at said times - this will allow more
+  granularity in the timestamps
+- create a p2p network where users can send data to be timestamped to miners,
+  removing the need for everyone who wants to timestamp data to be a miner.
+- optimize it, maybe even rewrite parts in C
+

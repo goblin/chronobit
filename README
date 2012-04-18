@@ -1,0 +1,138 @@
+This is ChronoBit, a secure timestamper using P2Pool. It can create proofs 
+that a given timestamped data existed before a confirmation date. 
+
+Confirmation date is generally the one of the next Bitcoin block found by 
+P2Pool. User's data is hashed, then the hash is put into P2Pool's share 
+coinbase, and then all the following P2Pool shares are stacked on top of
+that share. Finally, some P2Pool share will become an actual bitcoin block,
+and everyone can confirm the timestamp of a bitcoin block using any bitcoin
+client or blockexplorer.
+
+If you know P2Pool's shares hashes and are sure they existed at the time
+they say they did, the proof's timestamp gets the granularity of P2Pool's
+shares, otherwise it has granularity that of the found Bitcoin block.
+
+For more info on P2Pool visit:
+  http://p2pool.info/ (unofficial stats page)
+  https://github.com/forrestv/p2pool (github project page)
+
+For more info on bitcoin, visit:
+  http://bitcoin.org/
+
+INSTALLATION
+  Currently none, just use the extracted .pl files and make sure configs
+  are in current directory.
+
+  The following CPAN modules will be required - get them via CPAN or your
+  distro's package manager (if it has them) or otherwise make sure they're
+  installed:
+       
+    AnyEvent
+    AnyEvent::JSONRPC::HTTP::Client
+    AnyEvent::JSONRPC::HTTP::Server
+    Any::Moose
+    Data::ParseBinary
+    Digest::SHA
+    Digest::SHA::PurePerl
+    IO::All
+    JSON::XS
+    Log::Log4perl
+    LWP::UserAgent
+    YAML::Syck
+
+  To create timestamps you'll also need to be mining on P2Pool, git commit
+  52d0f3357b or later.
+
+CONFIGURATION
+  $ cp chronobit.conf-sample chronobit.conf
+  $ cp log.conf-sample log.conf
+  $ ed/vi/emacs/joe/nano/pico *.conf
+
+  Please set your chainid as the lowest available number greater than 0,
+  such that it doesn't collide with existing merged mining daemons.
+  The only other merged mining chainid that I know of is that of namecoind
+  and it's 1, so I set my chainid to 2.
+
+  'proofs' is a location (relative or absolute) to where you want your proofs
+  of timestamp to be stored, please make sure that this directory exists
+  (you'll have to create it manually).
+
+DOCUMENTATION
+  Is currently held in this file, as well as at the top of each perl script
+  in comments.
+
+USAGE
+  CREATING A TIMESTAMP
+    Run chronobitd.pl. 
+    Run P2Pool with --merged and point it at the running chronobitd.pl (you 
+    configured the port it listens on in chronobit.conf).
+    P2Pool will start querying chronobit for hashes. Take your data, sha256
+    it (e.g. via the commandline sha256sum utility). Give your hash to 
+    chronobitd like this:
+     
+     $ ./jsonrpc_client.pl http://localhost:8080 '["set_hash","<your_hash>"]'
+
+    You should see something like:
+    
+     $VAR1 = bless( do{\(my $o = 1)}, 'JSON::XS::Boolean' );
+
+    That's effectively a true value returned by chronobitd, acknowledging that
+    it got your hash.
+    Then wait for P2Pool to find a share (you have to be mining on P2Pool for
+    this to work). When it does, chronobitd will log an INFO message saying
+    something like "got p2pool share <...> for hash <...>". It will also store
+    a proof from your hash to that share's hash in the proof directory.
+
+    Chronobitd will continue to create proofs for each new P2Pool share found,
+    in case the one found was orphan or dead. If you got your proof, you can
+    prevent that by running:
+
+     $ ./jsonrpc_client.pl http://localhost:8080 '["unset_hash"]'
+
+    At any time you can also change the hash (with another set_hash) or check
+    what hash is currently stored (with "debug").
+
+    OK, now that we have a proof going from your data's hash up to a P2Pool's
+    share hash, we need to create another proof from the P2Pool's share up
+    to a bitcoin block. This is currently done manually. You'll have to wait
+    for P2Pool to find a block, but not longer than until it forgets your
+    share (which is something like 24 hours). Then you can create a proof
+    between any 2 shares (a bitcoin block is also just a share):
+
+     $ ./traverse_shares.pl <bitcoin_block_hash> <hash_of_share_with_proof>
+
+    That might take a while and will query p2pool for share data (using
+    its address taken from chronobit.conf) extensively. When it's done,
+    it'll save the proof to the usual location. You can then merge your
+    original proof with any number of other proofs - in order to create
+    one single proof for your data up to the bitcoin block:
+
+     $ ./merge_proofs.pl <proof1> [<proof2>...]
+
+  VERIFYING A TIMESTAMP'S PROOF
+    Just run this:
+
+     $ ./verify_proof.pl < <your_proof>
+
+    Notice it takes the proof on stdin, not as argument. You can make this
+    tool more verbose by giving it an argument (let's say --verbose) - it'll
+    then explain each step of the proof.
+
+    Each step effectively consists of one or more of:
+     - beginning SHA state (this is effectively done by P2Pool in order to
+       "compress" a number of bytes that are in front of the hash into 
+       a smaller state of SHA),
+     - bytes to prepend,
+     - the current data (current hash),
+     - bytes to append.
+    All this will be taken together and hashed. A step can also reverse bytes
+    in the current hash.
+
+  OPTIMIZING PROOF'S LENGTH
+    More thorough documentation to be written later, have a look at
+    share2proof.pl and shorten_proof_from_share.pl.
+
+CONTACT
+  You can find me on freenode irc channel #chronobit
+
+
