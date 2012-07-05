@@ -1,5 +1,8 @@
 Plans for future:
 
+- number tests
+- PODify docs
+- write up the specification of the proof file (and make sure it's OK)
 - shorten Proof::new_from_share
 - get rid of blessing hacks for new_from_binary, perhaps by making the classes
   inherit Data::ParseBinary::Struct and/or adding more adapters
@@ -9,6 +12,8 @@ Plans for future:
 - add a proof splitter (to split a long proof into shorter ones)
 - add a proof manager (that'll automatically find shares etc)
 - add a proper proof creator
+- use far_share_hash to jump by 100s to make proofs shorter
+- optimize traverse_shares so it doesn't call p2pool twice for each share
 
 Later future:
 - group up shares into merkle trees to reduce size of proofs

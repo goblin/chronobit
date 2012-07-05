@@ -10,7 +10,7 @@ client or blockexplorer.
 
 If you know P2Pool's shares hashes and are sure they existed at the time
 they say they did, the proof's timestamp gets the granularity of P2Pool's
-shares, otherwise it has granularity that of the found Bitcoin block.
+shares; otherwise it has granularity that of the found Bitcoin block.
 
 For more info on P2Pool visit:
   http://p2pool.info/ (unofficial stats page)
@@ -129,11 +129,38 @@ USAGE
     in the current hash.
 
   OPTIMIZING PROOF'S LENGTH
-    More thorough documentation to be written later, have a look at
-    share2proof.pl and shorten_proof_from_share.pl.
+    It's possible to reduce the first proof's length. The "first proof"
+    meaning the proof from your data to the p2pool share's hash. To do this,
+    you start by getting the share's data. First you need to reverse the bytes
+    of the share's hash, because p2pool interprets it backwards. Let's say
+    your original $SHARE_HASH is the one you got from the proof filename, and
+    it ends with a bunch of zeros. You can convert it to start with that bunch
+    of zeroes instead with:
+
+     $ P2POOL_SHARE_HASH=`echo $SHARE_HASH | xxd -r -ps | \
+       ./reverse_bytes.pl | xxd -ps -c100`
+
+    Then you build a short proof using p2pool's share_data from the previous
+    share's hash to your share's hash:
+
+     $ curl http://127.0.0.1:9332/web/share_data/$P2POOL_SHARE_HASH | \
+       ./share2proof.pl
+    
+    Pay attention to the filename that share2proof created. It's the 
+    <share_proof> expected by shorten_proof_from_share.pl. The <orig_proof>
+    is simply the original proof created by chronobitd when it first got
+    the share. Knowing this, you can run shorten_proof_from_share.pl and
+    get the short version of your original proof.
+
+    In future, it will be also possible to shorten the proofs from the p2pool
+    share up to the bitcoin block by utilizing p2pool's far_share_hashes.
+    That's on the TODO list.
 
 CONTACT
   You can find me on freenode irc channel #chronobit
 
 DONATIONS
   1FCkd4x31nTDQjJGp5Wp86xMqBNsgFCAhf
+
+--
+vim: sw=2 ts=2 expandtab

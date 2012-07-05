@@ -25,4 +25,5 @@ my $ps = ChronoBit::ProofStore->new(outdir =>
 	$cfg->{proofs},
 );
 
-$ps->save($proof);
+my $filename = $ps->save($proof);
+printf "Saved proof to $filename\n";
