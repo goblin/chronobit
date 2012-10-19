@@ -92,7 +92,9 @@ while(!target(hex2bin($cur_hash))) {
 	$cnt++;
 }
 
+print "Finished search, saving proof...\n";
+
 my $ps = ChronoBit::ProofStore->new(outdir => $cfg->{proofs});
 my $filename = $ps->save($proof); 
 
-printf "Saved proof to $filename\n";
+print "Saved proof to $filename\n";
