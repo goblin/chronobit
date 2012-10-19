@@ -18,77 +18,69 @@ my $aux_pow = aux_pow()->parse(hex2bin($getauxblock_response->[1]));
 
 my $proof = ChronoBit::Proof->new_aux2coinbase($hash, $aux_pow);
 
+my @proof_step_data = qw/
+	62bec4f577596e44ea8361ac937e86ddd138c70af1499e3af6d00fdd4b1ef230
+	30f21e4bdd0fd0f63a9e49f10ac738d1dd867e93ac6183ea446e5977f5c4be62
+	7f622456e0b9ce587556cc1d19f6c3e9b8cd3c947029c473dfdbd7723e025923
+	535c7202a304b93f5b4e71dbb0ce1e2f7505664ba693174ff70a82f291320561
+	0cf21aa00ed012fa9c963ec38062027c8d2d1fe194e508d937ee450000000000
+/;
+
 # it looks nicer in 'prove' when bin2hexed
 is(bin2hex($proof->from), bin2hex($hash));
-is(bin2hex($proof->to), 
-	'86273651d4fdefc77f05b49767b81652e594582695624d9a2e14905d35290d05');
-is(bin2hex($proof->perform), 
-	'86273651d4fdefc77f05b49767b81652e594582695624d9a2e14905d35290d05');
+is(bin2hex($proof->to), $proof_step_data[0]);
+is(bin2hex($proof->perform), $proof_step_data[0]);
 is($proof->verify, 1);
 
 my @prooflist = ($proof);
 
 my $proof_bin = $proof->dump;
-is(bin2hex($proof_bin), '001400000070333100000000000000000000000000000000000000000000000086273651d4fdefc77f05b49767b81652e594582695624d9a2e14905d35290d05020000002067f8718bf93e77b9490e26d66dafe2636bee2b4c0b0feb8bc4e30b00308e0c1300000000');
+is(bin2hex($proof_bin), '000000000000000000000000000000000000000000000000313370000000140062bec4f577596e44ea8361ac937e86ddd138c70af1499e3af6d00fdd4b1ef2300200000020ad176a9ba046ef19b44999bed63d090401a1148bdb8ac5c5ce76b2e0ad48938000000000');
 
 my $proof2 = ChronoBit::Proof->new_from_binary($proof_bin);
 is($proof2->dump, $proof_bin);
 
 $proof = ChronoBit::Proof->new_coinbase2gentx($aux_pow->{coinbase_txn});
-is(bin2hex($proof->from), 
-	'050d29355d90142e9a4d6295265894e55216b86797b4057fc7effdd451362786');
-is(bin2hex($proof->to),
-	'36722831961d89998ea2c71b86044fce52b9e9a699e088e91515f2d94e9484e5');
-is(bin2hex($proof->perform),
-	'36722831961d89998ea2c71b86044fce52b9e9a699e088e91515f2d94e9484e5');
+is(bin2hex($proof->from), $proof_step_data[1]);
+is(bin2hex($proof->to), $proof_step_data[2]);
+is(bin2hex($proof->perform), $proof_step_data[2]);
 is($proof->verify, 1);
-is(length $proof->dump, 7471);
+is(length $proof->dump, 7238);
 
 push @prooflist, $proof;
 
 $proof = ChronoBit::Proof->new_gentx2mrklroot($aux_pow);
-is(bin2hex($proof->from),
-	'36722831961d89998ea2c71b86044fce52b9e9a699e088e91515f2d94e9484e5');
-is(bin2hex($proof->to),
-	'bfa7d9bb7ce58ac47bcf48113f84b10f04501120fd388679856eb6f9d193e055');
-is(bin2hex($proof->perform),
-	'bfa7d9bb7ce58ac47bcf48113f84b10f04501120fd388679856eb6f9d193e055');
+is(bin2hex($proof->from), $proof_step_data[2]);
+is(bin2hex($proof->to), $proof_step_data[3]);
+is(bin2hex($proof->perform), $proof_step_data[3]);
 is($proof->verify, 1);
 
 push @prooflist, $proof;
 
 $proof = ChronoBit::Proof->new_mrklroot2block($aux_pow->{parent_block});
-is(bin2hex($proof->from),
-	'bfa7d9bb7ce58ac47bcf48113f84b10f04501120fd388679856eb6f9d193e055');
-is(bin2hex($proof->to),
-	'9aaff9b55038979b6bfc42db6f6b2165dc9ecf43e68a8b7aaa8c2f0000000000');
-is(bin2hex($proof->perform),
-	'9aaff9b55038979b6bfc42db6f6b2165dc9ecf43e68a8b7aaa8c2f0000000000');
+is(bin2hex($proof->from), $proof_step_data[3]);
+is(bin2hex($proof->to), $proof_step_data[4]);
+is(bin2hex($proof->perform), $proof_step_data[4]);
 is($proof->verify, 1);
 
 push @prooflist, $proof;
 
 $proof = ChronoBit::Proof->new_merged(@prooflist);
 is(bin2hex($proof->from), bin2hex($hash));
-is(bin2hex($proof->to),
-	'9aaff9b55038979b6bfc42db6f6b2165dc9ecf43e68a8b7aaa8c2f0000000000');
+is(bin2hex($proof->to), $proof_step_data[4]);
 is($proof->verify, 1);
 
 $proof_bin = $proof->dump;
 undef $proof;
 $proof2 = ChronoBit::Proof->new_from_binary($proof_bin);
-is(bin2hex($proof2->to),
-	'9aaff9b55038979b6bfc42db6f6b2165dc9ecf43e68a8b7aaa8c2f0000000000');
+is(bin2hex($proof2->to), $proof_step_data[4]);
 is($proof2->verify, 1);
 
 # another set of tests for p2pool shares
 my $share = share->parse($p2pool_share);
 
-$proof = ChronoBit::Proof->new_from_share($share, hex2bin(
-	'9aaff9b55038979b6bfc42db6f6b2165dc9ecf43e68a8b7aaa8c2f0000000000'
-));
-is(bin2hex($proof->perform),
-	'9aaff9b55038979b6bfc42db6f6b2165dc9ecf43e68a8b7aaa8c2f0000000000');
+$proof = ChronoBit::Proof->new_from_share($share, hex2bin($proof_step_data[4]));
+is(bin2hex($proof->perform), $proof_step_data[4]);
 is($proof->verify, 1);
 
 done_testing;
