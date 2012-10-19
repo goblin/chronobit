@@ -92,8 +92,7 @@ sub aux_pow {
 
 sub mm_coinbase {
 	return Struct($_[0],
-		ULInt32('block_height'), # as per BIP0034
-		Magic(",\xfa\xbemm"), # p2pool adds a comma between block height and MM header
+		Magic("\xfa\xbemm"),
 		Bytes('block_hash', 32),
 		ULInt32('merkle_size'),
 		ULInt32('merkle_nonce')
