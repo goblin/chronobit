@@ -13,7 +13,6 @@ Plans for future:
 - add a proof manager (that'll automatically find shares etc)
 - add a proper proof creator
 - use far_share_hash to jump by 100s to make proofs shorter
-- optimize traverse_shares so it doesn't call p2pool twice for each share
 
 Later future:
 - group up shares into merkle trees to reduce size of proofs

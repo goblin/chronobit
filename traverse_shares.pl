@@ -48,7 +48,9 @@ my $from;
 my $target;
 if($ARGV[1]) {
 	$from = $ARGV[0];
-	# reverse if needed
+	# reverse if needed (can safely assume the share will have a bunch
+	# of zeroes, as it needs to be at least difficulty 1)
+	# XXX: will fail once in a blue moon if it also has zeroes on the other side
 	if(substr($from, 0, 8) ne '00000000') {
 		$from = bin2hex(scalar reverse hex2bin($from));
 	}
@@ -70,8 +72,6 @@ my $cur_hash = $from;
 my $proof;
 
 while(!target(hex2bin($cur_hash))) {
-	my $share_json = $json->decode(get("web/share/$cur_hash"));
-
 	my $share = share->parse(get("web/share_data/$cur_hash"));
 	my $cur_proof = ChronoBit::Proof->new_from_share($share, 
 		scalar reverse hex2bin($cur_hash)
@@ -87,7 +87,8 @@ while(!target(hex2bin($cur_hash))) {
 		$proof = $cur_proof;
 	}
 
-	$cur_hash = $share_json->{parent};
+	$cur_hash = bin2hex(scalar reverse $share->{contents}->{common}->
+		{share_info}->{share_data}->{previous_share_hash});
 	$cnt++;
 }
 
