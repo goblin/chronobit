@@ -44,6 +44,8 @@ sub getauxblock {
 		my ($hash, $pow_hex) = @params;
 		$hash = bin2hex(scalar reverse hex2bin($hash));
 
+		$log->trace("getauxblock response: " . encode_json(\@params));
+
 		if($hash ne '00'x32) {
 			my $pow = aux_pow->parse(hex2bin($pow_hex));
 			my $share_hash = bin2hex($pow->{merkle_link}->{block_hash});
