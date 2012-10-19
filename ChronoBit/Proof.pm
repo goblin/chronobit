@@ -118,8 +118,10 @@ sub _mrklbranch2proof {
 sub new_aux2coinbase {
 	my ($class, $hash, $aux_pow) = @_;
 
+	my $raw_coinbase = $aux_pow->{coinbase_txn}->{tx_in}->[0]->{signature_script};
+
 	my $mm_coinbase = mm_coinbase->parse(
-		$aux_pow->{coinbase_txn}->{tx_in}->[0]->{signature_script});
+		substr($raw_coinbase, index($raw_coinbase, "\xfa\xbemm"), 44));
 
 	my $proof = $class->new(
 		from => $hash, 
@@ -140,8 +142,10 @@ sub new_aux2coinbase {
 sub new_coinbase2gentx {
 	my ($class, $gentx) = @_;
 
+	my $raw_coinbase = $gentx->{tx_in}->[0]->{signature_script};
+
 	my $src_hash = mm_coinbase->parse(
-		$gentx->{tx_in}->[0]->{signature_script})->{block_hash};
+		substr($raw_coinbase, index($raw_coinbase, "\xfa\xbemm"), 44))->{block_hash};
 	my $gentx_bin = tx->build($gentx);
 
 	my $proof = $class->new(
